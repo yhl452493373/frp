@@ -38,4 +38,7 @@ var (
 
 	// TCP multiplexer
 	HTTPConnectTCPMultiplexer = "httpconnect"
+
+	// JsonP param name
+	JsonP = "callback"
 )

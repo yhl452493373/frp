@@ -16,9 +16,8 @@ package server
 
 import (
 	"encoding/json"
-	"net/http"
-
 	"github.com/gorilla/mux"
+	"net/http"
 
 	"github.com/fatedier/frp/pkg/config/types"
 	v1 "github.com/fatedier/frp/pkg/config/v1"
@@ -29,8 +28,9 @@ import (
 )
 
 type GeneralResponse struct {
-	Code int
-	Msg  string
+	Code  int
+	Msg   string
+	JsonP string
 }
 
 type serverInfoResp struct {
@@ -62,12 +62,16 @@ func (svr *Service) Healthz(w http.ResponseWriter, _ *http.Request) {
 
 // /api/serverinfo
 func (svr *Service) APIServerInfo(w http.ResponseWriter, r *http.Request) {
-	res := GeneralResponse{Code: 200}
+	res := GeneralResponse{Code: 200, JsonP: r.FormValue(consts.JsonP)}
 	defer func() {
 		log.Info("Http response [%s]: code [%d]", r.URL.Path, res.Code)
 		w.WriteHeader(res.Code)
 		if len(res.Msg) > 0 {
-			_, _ = w.Write([]byte(res.Msg))
+			if len(res.JsonP) > 0 {
+				_, _ = w.Write([]byte(res.JsonP + "(" + res.Msg + ")"))
+			} else {
+				_, _ = w.Write([]byte(res.Msg))
+			}
 		}
 	}()
 
@@ -179,14 +183,16 @@ type GetProxyInfoResp struct {
 
 // /api/proxy/:type
 func (svr *Service) APIProxyByType(w http.ResponseWriter, r *http.Request) {
-	res := GeneralResponse{Code: 200}
+	res := GeneralResponse{Code: 200, JsonP: r.FormValue(consts.JsonP)}
 	params := mux.Vars(r)
 	proxyType := params["type"]
 
 	defer func() {
 		log.Info("Http response [%s]: code [%d]", r.URL.Path, res.Code)
 		w.WriteHeader(res.Code)
-		if len(res.Msg) > 0 {
+		if len(res.JsonP) > 0 {
+			_, _ = w.Write([]byte(res.JsonP + "(" + res.Msg + ")"))
+		} else {
 			_, _ = w.Write([]byte(res.Msg))
 		}
 	}()
@@ -247,7 +253,7 @@ type GetProxyStatsResp struct {
 
 // /api/proxy/:type/:name
 func (svr *Service) APIProxyByTypeAndName(w http.ResponseWriter, r *http.Request) {
-	res := GeneralResponse{Code: 200}
+	res := GeneralResponse{Code: 200, JsonP: r.FormValue(consts.JsonP)}
 	params := mux.Vars(r)
 	proxyType := params["type"]
 	name := params["name"]
@@ -255,7 +261,9 @@ func (svr *Service) APIProxyByTypeAndName(w http.ResponseWriter, r *http.Request
 	defer func() {
 		log.Info("Http response [%s]: code [%d]", r.URL.Path, res.Code)
 		w.WriteHeader(res.Code)
-		if len(res.Msg) > 0 {
+		if len(res.JsonP) > 0 {
+			_, _ = w.Write([]byte(res.JsonP + "(" + res.Msg + ")"))
+		} else {
 			_, _ = w.Write([]byte(res.Msg))
 		}
 	}()
@@ -316,14 +324,16 @@ type GetProxyTrafficResp struct {
 }
 
 func (svr *Service) APIProxyTraffic(w http.ResponseWriter, r *http.Request) {
-	res := GeneralResponse{Code: 200}
+	res := GeneralResponse{Code: 200, JsonP: r.FormValue(consts.JsonP)}
 	params := mux.Vars(r)
 	name := params["name"]
 
 	defer func() {
 		log.Info("Http response [%s]: code [%d]", r.URL.Path, res.Code)
 		w.WriteHeader(res.Code)
-		if len(res.Msg) > 0 {
+		if len(res.JsonP) > 0 {
+			_, _ = w.Write([]byte(res.JsonP + "(" + res.Msg + ")"))
+		} else {
 			_, _ = w.Write([]byte(res.Msg))
 		}
 	}()

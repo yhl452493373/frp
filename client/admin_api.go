@@ -31,12 +31,14 @@ import (
 	"github.com/fatedier/frp/client/proxy"
 	"github.com/fatedier/frp/pkg/config"
 	"github.com/fatedier/frp/pkg/config/v1/validation"
+	"github.com/fatedier/frp/pkg/consts"
 	"github.com/fatedier/frp/pkg/util/log"
 )
 
 type GeneralResponse struct {
-	Code int
-	Msg  string
+	Code  int
+	Msg   string
+	JsonP string
 }
 
 // /healthz
@@ -45,15 +47,19 @@ func (svr *Service) healthz(w http.ResponseWriter, _ *http.Request) {
 }
 
 // GET /api/reload
-func (svr *Service) apiReload(w http.ResponseWriter, _ *http.Request) {
-	res := GeneralResponse{Code: 200}
+func (svr *Service) apiReload(w http.ResponseWriter, r *http.Request) {
+	res := GeneralResponse{Code: 200, JsonP: r.FormValue(consts.JsonP)}
 
 	log.Info("api request [/api/reload]")
 	defer func() {
 		log.Info("api response [/api/reload], code [%d]", res.Code)
 		w.WriteHeader(res.Code)
 		if len(res.Msg) > 0 {
-			_, _ = w.Write([]byte(res.Msg))
+			if len(res.JsonP) > 0 {
+				_, _ = w.Write([]byte(res.JsonP + "(" + res.Msg + ")"))
+			} else {
+				_, _ = w.Write([]byte(res.Msg))
+			}
 		}
 	}()
 
@@ -81,15 +87,19 @@ func (svr *Service) apiReload(w http.ResponseWriter, _ *http.Request) {
 }
 
 // POST /api/stop
-func (svr *Service) apiStop(w http.ResponseWriter, _ *http.Request) {
-	res := GeneralResponse{Code: 200}
+func (svr *Service) apiStop(w http.ResponseWriter, r *http.Request) {
+	res := GeneralResponse{Code: 200, JsonP: r.FormValue(consts.JsonP)}
 
 	log.Info("api request [/api/stop]")
 	defer func() {
 		log.Info("api response [/api/stop], code [%d]", res.Code)
 		w.WriteHeader(res.Code)
 		if len(res.Msg) > 0 {
-			_, _ = w.Write([]byte(res.Msg))
+			if len(res.JsonP) > 0 {
+				_, _ = w.Write([]byte(res.JsonP + "(" + res.Msg + ")"))
+			} else {
+				_, _ = w.Write([]byte(res.Msg))
+			}
 		}
 	}()
 
@@ -131,17 +141,23 @@ func NewProxyStatusResp(status *proxy.WorkingStatus, serverAddr string) ProxySta
 }
 
 // GET /api/status
-func (svr *Service) apiStatus(w http.ResponseWriter, _ *http.Request) {
+func (svr *Service) apiStatus(w http.ResponseWriter, r *http.Request) {
 	var (
-		buf []byte
-		res StatusResp = make(map[string][]ProxyStatusResp)
+		buf   []byte
+		res   StatusResp = make(map[string][]ProxyStatusResp)
+		jsonp            = r.FormValue(consts.JsonP)
 	)
 
 	log.Info("Http request [/api/status]")
 	defer func() {
 		log.Info("Http response [/api/status]")
 		buf, _ = json.Marshal(&res)
-		_, _ = w.Write(buf)
+		if len(jsonp) > 0 {
+			str := jsonp + "(" + string(buf) + ")"
+			_, _ = w.Write([]byte(str))
+		} else {
+			_, _ = w.Write(buf)
+		}
 	}()
 
 	ps := svr.ctl.pm.GetAllProxyStatus()
@@ -160,15 +176,19 @@ func (svr *Service) apiStatus(w http.ResponseWriter, _ *http.Request) {
 }
 
 // GET /api/config
-func (svr *Service) apiGetConfig(w http.ResponseWriter, _ *http.Request) {
-	res := GeneralResponse{Code: 200}
+func (svr *Service) apiGetConfig(w http.ResponseWriter, r *http.Request) {
+	res := GeneralResponse{Code: 200, JsonP: r.FormValue(consts.JsonP)}
 
 	log.Info("Http get request [/api/config]")
 	defer func() {
 		log.Info("Http get response [/api/config], code [%d]", res.Code)
 		w.WriteHeader(res.Code)
 		if len(res.Msg) > 0 {
-			_, _ = w.Write([]byte(res.Msg))
+			if len(res.JsonP) > 0 {
+				_, _ = w.Write([]byte(res.JsonP + "(" + res.Msg + ")"))
+			} else {
+				_, _ = w.Write([]byte(res.Msg))
+			}
 		}
 	}()
 
@@ -191,14 +211,18 @@ func (svr *Service) apiGetConfig(w http.ResponseWriter, _ *http.Request) {
 
 // PUT /api/config
 func (svr *Service) apiPutConfig(w http.ResponseWriter, r *http.Request) {
-	res := GeneralResponse{Code: 200}
+	res := GeneralResponse{Code: 200, JsonP: r.FormValue(consts.JsonP)}
 
 	log.Info("Http put request [/api/config]")
 	defer func() {
 		log.Info("Http put response [/api/config], code [%d]", res.Code)
 		w.WriteHeader(res.Code)
 		if len(res.Msg) > 0 {
-			_, _ = w.Write([]byte(res.Msg))
+			if len(res.JsonP) > 0 {
+				_, _ = w.Write([]byte(res.JsonP + "(" + res.Msg + ")"))
+			} else {
+				_, _ = w.Write([]byte(res.Msg))
+			}
 		}
 	}()
 
